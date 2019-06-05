@@ -8,10 +8,10 @@
 const fs = require('fs-extra');
 const cp = require('child_process');
 const path = require('path');
-const chalk = require('chalk');
+const { green, red } = require('kleur');
 const util = require('./util');
-if(util.isTravisCI() && /^Travis build: \d+/g.test(process.env['TRAVIS_COMMIT_MESSAGE'])) {
-  console.log(`${chalk.green('NOBUILD')} Linting terminated, parent commit is a Travis build!`);
+if (util.isTravisCI() && /^Travis build: \d+/g.test(process.env['TRAVIS_COMMIT_MESSAGE'])) {
+  console.log(`${green('NOBUILD')} Linting terminated, parent commit is a Travis build!`);
   process.exit(0);
 }
 const SNIPPETS_PATH = './snippets';
@@ -28,9 +28,9 @@ try {
     // turn it into an object so we can add data to it to be used in a different scope
     .map(name => ({ name }));
 
-  if (!fs.existsSync(TEMP_PATH)) {
+  if (!fs.existsSync(TEMP_PATH))
     fs.mkdirSync(TEMP_PATH);
-  }
+
 
   for (const snippet of snippets) {
     snippet.data = fs.readFileSync(path.join(SNIPPETS_PATH, snippet.name), 'utf8');
@@ -52,10 +52,10 @@ try {
   }
 
   const cmd =
-    `semistandard "${TEMP_PATH}" --fix & ` +
-    `prettier "${TEMP_PATH}/*.js" --single-quote --print-width=100 --write`;
+    `prettier "${TEMP_PATH}/*.js" --single-quote --print-width=100 --write & ` +
+    `eslint "${TEMP_PATH}/*.js" --quiet --fix --rule "no-undef: 0, no-unused-vars: 0, no-multiple-empty-lines: 0" -o eslint_errors.log -f table`;
 
-  cp.exec(cmd, {}, (err, stdout, stderr) => {
+  cp.exec(cmd, {}, () => {
     // Loop through each snippet now that semistandard and prettier did their job
     for (const snippet of snippets) {
       // an array to store each linted code block (definition + example)
@@ -74,10 +74,10 @@ try {
     }
 
     fs.removeSync(TEMP_PATH);
-    console.log(`${chalk.green('SUCCESS!')} Snippet files linted!`);
+    console.log(`${green('SUCCESS!')} Snippet files linted!`);
     console.timeEnd('Linter');
   });
 } catch (err) {
-  console.log(`${chalk.red('ERROR!')} During linting: ${err}`);
+  console.log(`${red('ERROR!')} During linting: ${err}`);
   process.exit(1);
 }
